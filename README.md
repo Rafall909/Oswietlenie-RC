@@ -1,4 +1,4 @@
-# Oswietlenie-RC
+# Oswietlenie-RC (Projekt w fazie rozwijania)
 Oświetlenie modelu pojazdu RC - DeLorean DMC-12 w skali 1:10 wykonywany w ramach projektu Koła Naukowego Elektroników i Mechatroników "SEMICON".
 Wykorzystywana jest platforma Arduino Nano, diody adresowalne LED RGB WS2812B oraz moduł Bluetooth FSC-BT836B. 
 Aktualnie tryby pracy zmieniane są za pomocą aplikacji na Androida. 
