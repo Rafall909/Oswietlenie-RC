@@ -40,7 +40,6 @@ void setup() {
   Serial.begin(115200);
   BTserial.begin(115200); 
   pinMode(A0, INPUT);
-  pinMode(A4, INPUT_PULLUP);
   strip.begin();            // inicjalizacja LED
   strip.show(); 
   strip.setBrightness(jasnosc);
@@ -52,7 +51,7 @@ void loop() {
 
   switch (tryb) {
 
-    case 99:
+    case 99:  // światła wyłączone, oczekiwanie na włączenie poprzez aplikację
       lights_on=0;
       clear_0=0;
       y=0;
@@ -61,7 +60,7 @@ void loop() {
       sprawdz();
     break;
 
-    case 0:
+    case 0:  // światła drogowe, kierunkowskazy reagujące na skręt (aktualnie do testów podza modelem skręt pozorowany poprzez potencjometr)
       y=0;
       sprawdz();
       if (clear_0 == 0) {
@@ -90,6 +89,7 @@ void loop() {
         }
       }
       blinker_starttime = millis();
+      turn = analogRead(A0);
       if (blinker_start == 0) {
         blinker_starttime = blinker_starttime;
         blinker_start = 1;
@@ -143,7 +143,7 @@ void loop() {
       break;
 
  
-    case 1:
+    case 1:  // światła migające, losowe kolory
 
       clear_0 = 0;
       lights_on = 0;
@@ -159,7 +159,7 @@ void loop() {
 
 
 
-    case 2:
+    case 2:  // światła policyjne (migające niebiesko-czerwone), wykorzystuje zmienne wykorzystywane do kierunkowskazów
       clear_0 = 0;
       lights_on = 0;
       blinker_starttime = millis();
@@ -211,7 +211,7 @@ void loop() {
   }
 }
 
-
+// funkcja realizująca zmianę trybu zainicjowaną przez aplikację na telefonie
 void sprawdz() {
  if (BTserial.available())
     tryb=BTserial.read();
