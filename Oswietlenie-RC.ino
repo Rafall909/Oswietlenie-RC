@@ -1,22 +1,25 @@
 #include <SoftwareSerial.h> 
 #include <Adafruit_NeoPixel.h>
 
-#define LED_PIN 4
-#define LED_COUNT 12
+#define LED_PIN A5    // pin sterowania LED
+#define LED_COUNT 12  // liczba ledów w szeregu
 
-#define FLLO 0  //Front Left Lamp Outside
-#define FLLI 1  //Front Left Lamp Inside
-#define FRLI 4  //Front Right Lamp Inside
-#define FRLO 5  //Front Right Lamp Outside
-#define RRLO 7  //Rear Right Lamp Outside
-#define RR 8  //Right Reverse
-#define LR 9  //Lamp Reverse
-#define RLLO 10  //Rear Left Lamp Outside
+#define FLLO 0  // Front Left Lamp Outside
+#define FLLI 1  // Front Left Lamp Inside
+#define FRLI 4  // Front Right Lamp Inside
+#define FRLO 5  // Front Right Lamp Outside
+#define RRLO 7  // Rear Right Lamp Outside
+#define RR 8    // Right Reverse
+#define LR 9    // Lamp Reverse
+#define RLLO 10 // Rear Left Lamp Outside
 
-#define FLB 2  //Front Left Blinker
-#define FRB 3  // Front Right Blinker
-#define RRB 6 // Rear Right Blinker
-#define RLB 11 // Rear Left Blinker
+#define FLB 2   // Front Left Blinker
+#define FRB 3   // Front Right Blinker
+#define RRB 6   // Rear Right Blinker
+#define RLB 11  // Rear Left Blinker
+
+#define turnPin A3  // pin do wykrycia skrętu
+#define stopPin A2  // pin do wykrycia hamowania
 
 SoftwareSerial BTserial(3, 2); // RX | TX
 
@@ -27,26 +30,40 @@ int lights_on = 0;
 int i = 0;
 int clear_0 = 0;
 int jasnosc = 255;
-int tryb = 99;
-int left_range = 500;
-int right_range = 700;
-unsigned long blinker_start = 0;
+int tryb = 0;
+int left_range = 1250;
+int right_range = 1750; 
+int stop_range = 1320;
+int blinker_start = 0;
 unsigned long blinker_starttime = 0;
-int blinker_time = 600;
-int turn = 600;
+unsigned long blinker_time = 0;
+int blinker_delay = 600;
+int turn=0;
+int stop=0;
 int policja_delay = 180;
 void setup() {
 
   Serial.begin(115200);
   BTserial.begin(115200); 
   pinMode(A0, INPUT);
+  pinMode(A5, OUTPUT);
   strip.begin();            // inicjalizacja LED
   strip.show(); 
   strip.setBrightness(jasnosc);
+
+  pinMode(stopPin, INPUT);
+  pinMode(turnPin, INPUT);
+
 }
 
 
 void loop() {
+
+  // odczyt z aparatury sterującej
+
+stop=pulseIn(stopPin,HIGH);
+turn=pulseIn(turnPin,HIGH);
+
   sprawdz();
 
   switch (tryb) {
@@ -63,13 +80,61 @@ void loop() {
     case 0:  // światła drogowe, kierunkowskazy reagujące na skręt (aktualnie do testów podza modelem skręt pozorowany poprzez potencjometr)
       y=0;
       sprawdz();
+
+      // światła awaryjne, gdy aparatura nie jest podłączona
+
+      if (stop==0){
+        lights_on=0;
+        clear_0=0;
+        i=0;
+        strip.setPixelColor(FLLO, i, i, i);
+        strip.setPixelColor(FLLI, i, i, i);
+        strip.setPixelColor(FRLI, i, i, i);
+        strip.setPixelColor(FRLO, i, i, i);
+        strip.setPixelColor(RRLO, i, 0, 0);
+        strip.setPixelColor(RR, i, 0, 0);
+        strip.setPixelColor(LR, i, 0, 0);
+        strip.setPixelColor(RLLO, i, 0, 0);
+
+        blinker_time = millis();
+
+        if (blinker_start == 0) {
+          blinker_starttime = blinker_time;
+          blinker_start = 1;
+        }
+        if ((blinker_time - blinker_starttime) <= blinker_delay) {
+
+          strip.setPixelColor(FLB, 255, 80, 0);
+          strip.setPixelColor(RLB, 255, 80, 0);
+
+          strip.setPixelColor(FRB, 255, 80, 0);
+          strip.setPixelColor(RRB, 255, 80, 0);
+        } 
+        strip.show();
+
+        if ((blinker_time - blinker_starttime) > blinker_delay && (blinker_time - blinker_starttime) <= (2 * blinker_delay)) {
+
+          strip.setPixelColor(FLB, 0, 0, 0);
+          strip.setPixelColor(RLB, 0, 0, 0);
+
+          strip.setPixelColor(FRB, 0, 0, 0);
+          strip.setPixelColor(RRB, 0, 0, 0);
+        }
+        strip.show();
+
+        if ((blinker_time - blinker_starttime) > (2 * blinker_delay)) {
+          blinker_start = 0;
+        }
+        break;
+      }
       if (clear_0 == 0) {
         strip.clear();
         strip.show();
-        clear_0 = 1;}
+        clear_0 = 1;
+      }
       sprawdz();
       while (lights_on == 0) {
-        for (i = 0; i <= 255; i++) {
+        for (i = 0; i <= 120; i++) {
           //przol lewy
           strip.setPixelColor(FLLO, i, i, i);
           strip.setPixelColor(FLLI, i, i, i);
@@ -78,23 +143,22 @@ void loop() {
           strip.setPixelColor(FRLO, i, i, i);
           //tyl prawy
           strip.setPixelColor(RRLO, i, 0, 0);
-          strip.setPixelColor(RR, i, 0, 0);
+          //strip.setPixelColor(RR, i, 0, 0);
           //tyl lewy
-          strip.setPixelColor(LR, i, 0, 0);
+          //strip.setPixelColor(LR, i, 0, 0);
           strip.setPixelColor(RLLO, i, 0, 0);
 
           strip.show();
           delay(3);
-          if (i == 255) { lights_on = 1; }
+          if (i == 120) { lights_on = 1; }
         }
       }
-      blinker_starttime = millis();
-      turn = analogRead(A0);
+      blinker_time = millis();
       if (blinker_start == 0) {
-        blinker_starttime = blinker_starttime;
+        blinker_starttime = blinker_time;
         blinker_start = 1;
       }
-      if ((blinker_starttime - blinker_starttime) <= blinker_time) {
+      if ((blinker_time - blinker_starttime) <= blinker_delay) {
 
         if (turn <= left_range) {
           //przol lewy
@@ -115,7 +179,7 @@ void loop() {
         }
         strip.show();
       }
-      if ((blinker_starttime - blinker_starttime) > blinker_time && (blinker_starttime - blinker_starttime) <= (2 * blinker_time)) {
+      if ((blinker_time - blinker_starttime) > blinker_delay && (blinker_time - blinker_starttime) <= (2 * blinker_delay)) {
         if (turn <= left_range) {
           //przol lewy
           strip.setPixelColor(FLB, 0, 0, 0);
@@ -137,9 +201,15 @@ void loop() {
         }
         strip.show();
       }
-      if ((blinker_starttime - blinker_starttime) > (2 * blinker_time)) {
+      if ((blinker_time - blinker_starttime) > (2 * blinker_delay)) {
         blinker_start = 0;
       }
+      if(stop<=stop_range){
+        strip.setPixelColor(RR, 255, 0, 0);
+        strip.setPixelColor(LR, 255, 0, 0);
+      }
+      else {strip.setPixelColor(RR, 0, 0, 0);
+        strip.setPixelColor(LR, 0, 0, 0); }
       break;
 
  
