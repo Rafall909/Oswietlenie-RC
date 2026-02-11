@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<!-- Interface in Polish (pl) for target Polish-speaking audience -->
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload pliku XML z danymi HEX</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 30px;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f0f5;
+        }
+        
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8e9ff;
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        
+        .upload-area h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .upload-area p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .message.show {
+            display: block;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .message.info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+        }
+        
+        .results {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        .hex-display {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        
+        .hex-byte {
+            display: inline-block;
+            margin: 3px;
+            padding: 6px 10px;
+            background: #2d2d2d;
+            border-radius: 5px;
+            border: 1px solid #404040;
+            transition: all 0.2s ease;
+        }
+        
+        .hex-byte:hover {
+            background: #667eea;
+            border-color: #667eea;
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .file-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .file-info.show {
+            display: block;
+        }
+        
+        .file-info strong {
+            color: #667eea;
+        }
+        
+        h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📤 Upload pliku XML</h1>
+            <p>Wgraj plik XML z 67 bajtami danych HEX</p>
+        </div>
+        
+        <div class="content">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <h2>Przeciągnij plik XML tutaj</h2>
+                <p>lub kliknij aby wybrać plik</p>
+                <label for="fileInput" class="btn">Wybierz plik XML</label>
+                <input type="file" id="fileInput" accept=".xml" />
+            </div>
+            
+            <div class="message" id="message"></div>
+            
+            <div class="file-info" id="fileInfo"></div>
+            
+            <div class="results" id="results">
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="label">Liczba bajtów</div>
+                        <div class="value" id="byteCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Format</div>
+                        <div class="value">HEX</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Status</div>
+                        <div class="value" id="status">-</div>
+                    </div>
+                </div>
+                
+                <h3>📊 Dane HEX:</h3>
+                <div class="hex-display" id="hexDisplay"></div>
+                
+                <h3>📝 Dane w różnych formatach:</h3>
+                <div class="hex-display" id="formatsDisplay"></div>
+                
+                <div class="actions">
+                    <button class="btn" onclick="copyHex()">📋 Kopiuj HEX</button>
+                    <button class="btn" onclick="downloadHex()">💾 Pobierz HEX</button>
+                    <button class="btn" onclick="downloadArray()">💾 Pobierz jako Array</button>
+                    <button class="btn" onclick="reset()">🔄 Resetuj</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Configuration constants
+        const BINARY_DISPLAY_LIMIT = 8;  // Show only first N bytes in binary format
+        const SUCCESS_MESSAGE_TIMEOUT = 5000;  // Auto-hide success messages after 5 seconds
+        
+        let hexData = [];
+        let fileName = '';
+        
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const message = document.getElementById('message');
+        const results = document.getElementById('results');
+        const fileInfo = document.getElementById('fileInfo');
+        
+        // Obsługa kliknięcia w obszar uploadu
+        uploadArea.addEventListener('click', function(e) {
+            if (e.target !== fileInput && e.target.tagName !== 'LABEL') {
+                fileInput.click();
+            }
+        });
+        
+        // Obsługa wyboru pliku
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        });
+        
+        // Obsługa drag & drop
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.xml')) {
+                handleFile(file);
+            } else {
+                showMessage('Proszę upuścić plik XML', 'error');
+            }
+        });
+        
+        // Główna funkcja obsługi pliku
+        function handleFile(file) {
+            fileName = file.name;
+            showMessage('Wczytywanie pliku: ' + fileName + '...', 'info');
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    parseXML(e.target.result);
+                } catch (error) {
+                    showMessage('❌ Błąd podczas wczytywania: ' + error.message, 'error');
+                }
+            };
+            
+            reader.onerror = function() {
+                showMessage('❌ Błąd podczas odczytu pliku', 'error');
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // Parsowanie XML
+        function parseXML(xmlString) {
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+                
+                // Sprawdzenie błędów parsowania
+                const parserError = xmlDoc.querySelector('parsererror');
+                if (parserError) {
+                    throw new Error('Nieprawidłowy format XML');
+                }
+                
+                // Szukanie danych hex - próbujemy różnych możliwych nazw elementów
+                let hexDataElement = xmlDoc.querySelector('hex_data') || 
+                                    xmlDoc.querySelector('dane_hex') ||
+                                    xmlDoc.querySelector('data') ||
+                                    xmlDoc.querySelector('hexdata');
+                
+                if (!hexDataElement) {
+                    // Jeśli nie znaleziono, szukamy pierwszego elementu z danymi
+                    const allElements = xmlDoc.getElementsByTagName('*');
+                    for (let elem of allElements) {
+                        if (elem.textContent.trim().match(/^[0-9A-Fa-f\s]+$/)) {
+                            hexDataElement = elem;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!hexDataElement) {
+                    throw new Error('Nie znaleziono danych hex w pliku XML');
+                }
+                
+                const hexString = hexDataElement.textContent;
+                processHexData(hexString);
+                
+            } catch (error) {
+                showMessage('❌ Błąd parsowania XML: ' + error.message, 'error');
+            }
+        }
+        
+        // Przetwarzanie danych hex
+        function processHexData(hexString) {
+            // Usunięcie białych znaków i podział na bajty
+            const bytes = hexString.trim().split(/\s+/).filter(b => b.length > 0);
+            
+            // Walidacja formatu hex
+            const hexPattern = /^[0-9A-Fa-f]{2}$/;
+            const invalidBytes = bytes.filter(b => !hexPattern.test(b));
+            
+            if (invalidBytes.length > 0) {
+                showMessage('❌ Błąd: Nieprawidłowy format hex w bajtach: ' + invalidBytes.join(', '), 'error');
+                return;
+            }
+            
+            // Walidacja liczby bajtów
+            if (bytes.length !== 67) {
+                showMessage(`⚠️ Uwaga: Znaleziono ${bytes.length} bajtów, oczekiwano 67. Dane zostały załadowane.`, 'info');
+            } else {
+                showMessage('✅ Pomyślnie załadowano 67 bajtów danych hex!', 'success');
+            }
+            
+            // Zapisanie danych
+            hexData = bytes;
+            displayResults();
+        }
+        
+        // Wyświetlanie wyników
+        function displayResults() {
+            // Informacje o pliku
+            fileInfo.innerHTML = `<strong>Plik:</strong> ${fileName} | <strong>Rozmiar:</strong> ${hexData.length} bajtów`;
+            fileInfo.classList.add('show');
+            
+            // Statystyki
+            document.getElementById('byteCount').textContent = hexData.length;
+            document.getElementById('status').textContent = hexData.length === 67 ? '✓' : '⚠';
+            
+            // Wyświetlenie bajtów hex
+            const hexDisplay = document.getElementById('hexDisplay');
+            hexDisplay.innerHTML = '';
+            
+            hexData.forEach((byte, index) => {
+                const span = document.createElement('span');
+                span.className = 'hex-byte';
+                span.textContent = byte.toUpperCase();
+                span.title = `Bajt ${index}: 0x${byte} (${parseInt(byte, 16)})`;
+                hexDisplay.appendChild(span);
+                
+                // Nowa linia co 16 bajtów
+                if ((index + 1) % 16 === 0 && index < hexData.length - 1) {
+                    hexDisplay.appendChild(document.createElement('br'));
+                }
+            });
+            
+            // Wyświetlenie w różnych formatach
+            displayFormats();
+            
+            // Pokazanie wyników
+            results.classList.add('show');
+        }
+        
+        // Wyświetlanie różnych formatów
+        function displayFormats() {
+            const formatsDisplay = document.getElementById('formatsDisplay');
+            
+            // Konwersje
+            const decimal = hexData.map(b => parseInt(b, 16));
+            const binary = hexData.slice(0, BINARY_DISPLAY_LIMIT).map(b => '0b' + parseInt(b, 16).toString(2).padStart(8, '0'));
+            
+            let html = '<div style="line-height: 1.8;">';
+            html += '<strong style="color: #4CAF50;">HEX:</strong> ' + hexData.join(' ') + '<br><br>';
+            html += '<strong style="color: #2196F3;">Decimal:</strong> [' + decimal.join(', ') + ']<br><br>';
+            html += '<strong style="color: #FF9800;">Binary (pierwsze ' + BINARY_DISPLAY_LIMIT + '):</strong> [' + binary.join(', ') + ']<br><br>';
+            html += '<strong style="color: #9C27B0;">C Array:</strong> {0x' + hexData.join(', 0x') + '}';
+            html += '</div>';
+            
+            formatsDisplay.innerHTML = html;
+        }
+        
+        // Kopiowanie hex do schowka
+        function copyHex() {
+            const hexString = hexData.join(' ');
+            navigator.clipboard.writeText(hexString).then(() => {
+                showMessage('✅ Dane hex skopiowane do schowka!', 'success');
+            }).catch(err => {
+                showMessage('❌ Błąd podczas kopiowania: ' + err.message, 'error');
+            });
+        }
+        
+        // Pobieranie jako plik hex
+        function downloadHex() {
+            const hexString = hexData.join(' ');
+            const blob = new Blob([hexString], { type: 'text/plain' });
+            downloadBlob(blob, 'hex_data.txt');
+            showMessage('✅ Plik hex został pobrany', 'success');
+        }
+        
+        // Pobieranie jako C array
+        function downloadArray() {
+            const arrayString = 'uint8_t data[' + hexData.length + '] = {0x' + hexData.join(', 0x') + '};';
+            const blob = new Blob([arrayString], { type: 'text/plain' });
+            downloadBlob(blob, 'hex_array.c');
+            showMessage('✅ Plik C array został pobrany', 'success');
+        }
+        
+        // Pomocnicza funkcja do pobierania
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Reset
+        function reset() {
+            hexData = [];
+            fileName = '';
+            fileInput.value = '';
+            results.classList.remove('show');
+            fileInfo.classList.remove('show');
+            message.classList.remove('show');
+            showMessage('Możesz wgrać nowy plik', 'info');
+        }
+        
+        // Wyświetlanie komunikatów
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.className = 'message ' + type + ' show';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    message.classList.remove('show');
+                }, SUCCESS_MESSAGE_TIMEOUT);
+            }
+        }
+    </script>
+</body>
+</html>
