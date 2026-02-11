@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Interface in Polish (pl) for target Polish-speaking audience -->
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
@@ -295,6 +296,10 @@
     </div>
     
     <script>
+        // Configuration constants
+        const BINARY_DISPLAY_LIMIT = 8;  // Show only first N bytes in binary format
+        const SUCCESS_MESSAGE_TIMEOUT = 5000;  // Auto-hide success messages after 5 seconds
+        
         let hexData = [];
         let fileName = '';
         
@@ -471,12 +476,12 @@
             
             // Konwersje
             const decimal = hexData.map(b => parseInt(b, 16));
-            const binary = hexData.slice(0, 8).map(b => '0b' + parseInt(b, 16).toString(2).padStart(8, '0'));
+            const binary = hexData.slice(0, BINARY_DISPLAY_LIMIT).map(b => '0b' + parseInt(b, 16).toString(2).padStart(8, '0'));
             
             let html = '<div style="line-height: 1.8;">';
             html += '<strong style="color: #4CAF50;">HEX:</strong> ' + hexData.join(' ') + '<br><br>';
             html += '<strong style="color: #2196F3;">Decimal:</strong> [' + decimal.join(', ') + ']<br><br>';
-            html += '<strong style="color: #FF9800;">Binary (pierwsze 8):</strong> [' + binary.join(', ') + ']<br><br>';
+            html += '<strong style="color: #FF9800;">Binary (pierwsze ' + BINARY_DISPLAY_LIMIT + '):</strong> [' + binary.join(', ') + ']<br><br>';
             html += '<strong style="color: #9C27B0;">C Array:</strong> {0x' + hexData.join(', 0x') + '}';
             html += '</div>';
             
@@ -540,7 +545,7 @@
             if (type === 'success') {
                 setTimeout(() => {
                     message.classList.remove('show');
-                }, 5000);
+                }, SUCCESS_MESSAGE_TIMEOUT);
             }
         }
     </script>
